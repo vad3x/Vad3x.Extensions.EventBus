@@ -19,14 +19,24 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static IEventBusBuilder AddSubscriber<TEvent, THandler>(
             this IEventBusBuilder builder,
-            string exchangeName = null,
-            string queueName = null)
+            string exchangeName,
+            string queueName)
             where TEvent : IntegrationEvent
             where THandler : class, IIntegrationEventHandler<TEvent>
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (exchangeName == null)
+            {
+                throw new ArgumentNullException(nameof(exchangeName));
+            }
+
+            if (queueName == null)
+            {
+                throw new ArgumentNullException(nameof(queueName));
             }
 
             builder.Services.AddTransient<THandler>();

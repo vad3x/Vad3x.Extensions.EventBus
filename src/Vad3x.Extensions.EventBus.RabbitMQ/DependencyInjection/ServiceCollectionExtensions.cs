@@ -4,6 +4,8 @@ using Vad3x.Extensions.EventBus.RabbitMQ;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -29,6 +31,9 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 var logger = sp.GetRequiredService<ILogger<DefaultRabbitMQPersistentConnection>>();
                 var options = sp.GetRequiredService<IOptions<RabbitMQOptions>>().Value;
+
+                var subscribers = sp.GetRequiredService<IEnumerable<SubscriberInfo>>();
+
                 var factory = new ConnectionFactory
                 {
                     HostName = options.HostName
@@ -49,7 +54,10 @@ namespace Microsoft.Extensions.DependencyInjection
                     factory.VirtualHost = options.VirtualHost;
                 }
 
-                return new DefaultRabbitMQPersistentConnection(logger, factory, options.ClientProvidedName, options.Exchanges ?? Array.Empty<string>(), options.Queues ?? Array.Empty<string>());
+                var exchanges = subscribers.Select(x => x.ExchangeName).Distinct().ToArray();
+                var queues = subscribers.Select(x => x.QueueName).Distinct().ToArray();
+
+                return new DefaultRabbitMQPersistentConnection(logger, factory, options.ClientProvidedName, exchanges, queues);
             });
 
             services.AddSingleton<IEventPublisher, RabbitMQEventPublisher>();

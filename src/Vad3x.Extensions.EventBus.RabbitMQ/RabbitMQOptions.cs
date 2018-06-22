@@ -1,7 +1,3 @@
-using Vad3x.Extensions.EventBus.Abstractions;
-using System;
-using System.Collections.Generic;
-
 namespace Vad3x.Extensions.EventBus.RabbitMQ
 {
     public class RabbitMQOptions
@@ -17,9 +13,5 @@ namespace Vad3x.Extensions.EventBus.RabbitMQ
         public string VirtualHost { get; set; }
 
         public ushort PrefetchCount { get; set; } = 1;
-
-        public string[] Exchanges { get; set; }
-
-        public string[] Queues { get; set; }
     }
 }
