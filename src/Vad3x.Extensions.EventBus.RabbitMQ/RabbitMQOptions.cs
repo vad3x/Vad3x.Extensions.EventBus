@@ -13,5 +13,7 @@ namespace Vad3x.Extensions.EventBus.RabbitMQ
         public string VirtualHost { get; set; }
 
         public ushort PrefetchCount { get; set; } = 1;
+
+        public string[] Exchanges { get; set; }
     }
 }

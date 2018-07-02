@@ -54,7 +54,12 @@ namespace Microsoft.Extensions.DependencyInjection
                     factory.VirtualHost = options.VirtualHost;
                 }
 
-                var exchanges = subscribers.Select(x => x.ExchangeName).Distinct().ToArray();
+                var exchanges = subscribers
+                    .Select(x => x.ExchangeName)
+                    .Union(options.Exchanges ?? Array.Empty<string>())
+                    .Distinct()
+                    .ToArray();
+
                 var queues = subscribers.Select(x => x.QueueName).Distinct().ToArray();
 
                 return new DefaultRabbitMQPersistentConnection(logger, factory, options.ClientProvidedName, exchanges, queues);
