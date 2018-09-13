@@ -28,7 +28,6 @@ for:
         symbol_server: https://www.myget.org/F/vad3x-extensions-event-bus/symbols/api/v2/package
         artifact: /.*\.nupkg/
 
-for:
   -
     branches:
       only:
