@@ -21,19 +21,21 @@ deploy:
     skip_symbols: false
     symbol_server: https://www.myget.org/F/vad3x-extensions-event-bus/symbols/api/v2/package
     artifact: /.*\.nupkg/
--
-  branches:
-    only:
-      - master
 
-    build_script:
-      - ps: dotnet restore
-      - ps: dotnet pack -c Release --include-symbols --output ../../nupkgs/beta
+for:
+  -
+    branches:
+      only:
+        - master
 
-    deploy:
-      - provider: NuGet
-          name: NuGet Channel
-          api_key:
-            secure: 8dZVSJGj14GW04Rwa+Qk9UwYkBeeApG5PA32GBBDI3iS5TXUZ8i4ZugU61gCLh+Z
-          skip_symbols: true
-          artifact: /.*\.nupkg/
+      build_script:
+        - ps: dotnet restore
+        - ps: dotnet pack -c Release --include-symbols --output ../../nupkgs/beta
+
+      deploy:
+        - provider: NuGet
+            name: NuGet Channel
+            api_key:
+              secure: 8dZVSJGj14GW04Rwa+Qk9UwYkBeeApG5PA32GBBDI3iS5TXUZ8i4ZugU61gCLh+Z
+            skip_symbols: true
+            artifact: /.*\.nupkg/
