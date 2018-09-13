@@ -28,14 +28,14 @@ for:
       only:
         - master
 
-      build_script:
-        - ps: dotnet restore
-        - ps: dotnet pack -c Release --include-symbols --output ../../nupkgs/beta
+    build_script:
+      - ps: dotnet restore
+      - ps: dotnet pack -c Release --include-symbols --output ../../nupkgs/beta
 
-      deploy:
-        - provider: NuGet
-          name: NuGet Channel
-          api_key:
-            secure: 8dZVSJGj14GW04Rwa+Qk9UwYkBeeApG5PA32GBBDI3iS5TXUZ8i4ZugU61gCLh+Z
-          skip_symbols: true
-          artifact: /.*\.nupkg/
+    deploy:
+      - provider: NuGet
+        name: NuGet Channel
+        api_key:
+          secure: 8dZVSJGj14GW04Rwa+Qk9UwYkBeeApG5PA32GBBDI3iS5TXUZ8i4ZugU61gCLh+Z
+        skip_symbols: true
+        artifact: /.*\.nupkg/
