@@ -24,6 +24,7 @@ namespace Vad3x.Extensions.EventBus.RabbitMQ
         private readonly IEnumerable<IEventPublisherEventExtender> _eventExtenders;
 
         private readonly IRabbitMQPersistentConnection _persistentConnection;
+
         public RabbitMQEventPublisher(
             ILogger<RabbitMQEventPublisher> logger,
             IEnumerable<IEventPublisherEventExtender> eventExtenders,
@@ -53,10 +54,15 @@ namespace Vad3x.Extensions.EventBus.RabbitMQ
                 .Handle<BrokerUnreachableException>()
                 .Or<SocketException>()
                 .Or<TimeoutException>()
-                .WaitAndRetryForever(retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)), (ex, time) =>
+                .WaitAndRetryForever(retryAttempt =>
                 {
-                    _logger.LogWarning(ex.ToString());
-                });
+                    var seconds = Math.Pow(2, retryAttempt);
+                    return TimeSpan.FromSeconds(seconds < _persistentConnection.RetryPolicyMaxSleepDurationSeconds ? seconds : _persistentConnection.RetryPolicyMaxSleepDurationSeconds);
+                }, (ex, time) =>
+                {
+                    _logger.LogWarning(ex, "Could not establish connection to RabbitMQ because of `{exception}` in `{time}`, retrying...", ex.Message, time);
+                }
+            );
 
             policy.Execute(() =>
             {

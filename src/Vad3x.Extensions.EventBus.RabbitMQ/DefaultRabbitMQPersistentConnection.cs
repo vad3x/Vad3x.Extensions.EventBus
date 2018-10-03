@@ -26,7 +26,8 @@ namespace Vad3x.Extensions.EventBus.RabbitMQ
             IConnectionFactory connectionFactory,
             string clientProvidedName,
             string[] exchanges,
-            string[] queues)
+            string[] queues,
+            int retryPolicyMaxSleepDurationSeconds)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
@@ -34,7 +35,10 @@ namespace Vad3x.Extensions.EventBus.RabbitMQ
             ClientProvidedName = clientProvidedName ?? throw new ArgumentNullException(nameof(clientProvidedName));
             Exchanges = exchanges ?? throw new ArgumentNullException(nameof(exchanges));
             Queues = queues ?? throw new ArgumentNullException(nameof(queues));
+            RetryPolicyMaxSleepDurationSeconds = retryPolicyMaxSleepDurationSeconds;
         }
+
+        public int RetryPolicyMaxSleepDurationSeconds { get; private set; }
 
         public string ClientProvidedName { get; private set; }
 
@@ -62,7 +66,8 @@ namespace Vad3x.Extensions.EventBus.RabbitMQ
 
         public void Dispose()
         {
-            if (_disposed) return;
+            if (_disposed)
+                return;
 
             _disposed = true;
 
@@ -90,9 +95,13 @@ namespace Vad3x.Extensions.EventBus.RabbitMQ
                 var policy = Policy
                     .Handle<SocketException>()
                     .Or<BrokerUnreachableException>()
-                    .WaitAndRetryForever(retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)), (ex, time) =>
+                    .WaitAndRetryForever(retryAttempt =>
                     {
-                        _logger.LogWarning(ex.ToString());
+                        var seconds = Math.Pow(2, retryAttempt);
+                        return TimeSpan.FromSeconds(seconds < RetryPolicyMaxSleepDurationSeconds ? seconds : RetryPolicyMaxSleepDurationSeconds);
+                    }, (ex, time) =>
+                    {
+                        _logger.LogWarning(ex, "Could not establish connection to RabbitMQ because of `{exception}` in `{time}`, retrying...", ex.Message, time);
                     }
                 );
 
@@ -146,7 +155,8 @@ namespace Vad3x.Extensions.EventBus.RabbitMQ
 
         private void OnConnectionBlocked(object sender, ConnectionBlockedEventArgs e)
         {
-            if (_disposed) return;
+            if (_disposed)
+                return;
 
             _logger.LogWarning("A RabbitMQ connection is shutdown. Trying to re-connect...");
 
@@ -155,7 +165,8 @@ namespace Vad3x.Extensions.EventBus.RabbitMQ
 
         void OnCallbackException(object sender, CallbackExceptionEventArgs e)
         {
-            if (_disposed) return;
+            if (_disposed)
+                return;
 
             _logger.LogWarning("A RabbitMQ connection throw exception. Trying to re-connect...");
 
@@ -164,7 +175,8 @@ namespace Vad3x.Extensions.EventBus.RabbitMQ
 
         void OnConnectionShutdown(object sender, ShutdownEventArgs reason)
         {
-            if (_disposed) return;
+            if (_disposed)
+                return;
 
             _logger.LogWarning("A RabbitMQ connection is on shutdown. Trying to re-connect...");
 

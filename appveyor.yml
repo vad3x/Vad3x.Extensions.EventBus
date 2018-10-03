@@ -6,10 +6,10 @@ build_script:
   - ps: $buildNumber = "{0:d8}" -f [convert]::ToInt32($env:APPVEYOR_BUILD_NUMBER)
   - ps: Write-Host "Version Suffix:" $buildNumber
   - ps: dotnet restore
-  - ps: dotnet pack -c Release /p:BuildNumber=$buildNumber --include-symbols --output ../../nupkgs/beta
+  - ps: dotnet pack -c Release /p:BuildNumber=$buildNumber --include-symbols --output ../../nupkgs
 
 artifacts:
-  - path: ./nupkgs/beta/**/*.nupkg
+  - path: ./nupkgs/**/*.nupkg
     name: NuGet
 
 for:
@@ -35,7 +35,7 @@ for:
 
     build_script:
       - ps: dotnet restore
-      - ps: dotnet pack -c Release --include-symbols --output ../../nupkgs/beta
+      - ps: dotnet pack -c Release --include-symbols --output ../../nupkgs
 
     deploy:
       - provider: NuGet

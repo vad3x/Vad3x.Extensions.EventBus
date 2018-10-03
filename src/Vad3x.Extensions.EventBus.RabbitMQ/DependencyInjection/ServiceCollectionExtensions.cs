@@ -62,7 +62,13 @@ namespace Microsoft.Extensions.DependencyInjection
 
                 var queues = subscribers.Select(x => x.QueueName).Distinct().ToArray();
 
-                return new DefaultRabbitMQPersistentConnection(logger, factory, options.ClientProvidedName, exchanges, queues);
+                return new DefaultRabbitMQPersistentConnection(
+                    logger,
+                    factory,
+                    options.ClientProvidedName,
+                    exchanges,
+                    queues,
+                    options.RetryPolicyMaxSleepDurationSeconds);
             });
 
             services.AddSingleton<IEventPublisher, RabbitMQEventPublisher>();
