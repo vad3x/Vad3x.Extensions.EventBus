@@ -1,14 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-using Vad3x.Extensions.EventBus.Abstractions;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using Newtonsoft.Json;
+
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+
+using Vad3x.Extensions.EventBus.Abstractions;
 
 namespace Vad3x.Extensions.EventBus.RabbitMQ
 {
@@ -24,6 +29,7 @@ namespace Vad3x.Extensions.EventBus.RabbitMQ
 
         private readonly IRabbitMQPersistentConnection _persistentConnection;
         private readonly IEventBusSubscriptionsManager _subsManager;
+        private readonly IEnumerable<SubscriberInfo> _subscribers;
         private readonly IServiceProvider _serviceProvider;
 
         private IModel _consumerChannel;
@@ -42,39 +48,43 @@ namespace Vad3x.Extensions.EventBus.RabbitMQ
             _options = options.Value;
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             _persistentConnection = persistentConnection ?? throw new ArgumentNullException(nameof(persistentConnection));
-            _subsManager = subsManager ?? new InMemoryEventBusSubscriptionsManager();
+            _subsManager = subsManager ?? throw new ArgumentNullException(nameof(subsManager));
+            _subscribers = subscribers;
+
+            _subsManager.OnEventRemoved += SubsManager_OnEventRemoved;
+        }
+
+        public Task StartAsync(CancellationToken cancellationToken = default)
+        {
+            _logger.LogInformation("Creating ConsumerChannel...");
 
             _consumerChannel = CreateConsumerChannel(_options.PrefetchCount);
 
-            _subsManager.OnEventRemoved += SubsManager_OnEventRemoved;
-
-            if (subscribers != null)
+            if (_subscribers != null)
             {
-                foreach (var subscriber in subscribers)
+                foreach (var subscriber in _subscribers)
                 {
+                    _logger.LogInformation(
+                        "Subscribe '{eventType}' -> '{handlerType}' on '{exchangeName}'/'{queueName}'",
+                        subscriber.EventType.ToString(),
+                        subscriber.HandlerType.ToString(),
+                        subscriber.ExchangeName,
+                        subscriber.QueueName);
+
                     Subscribe(subscriber.EventType, subscriber.HandlerType, subscriber.ExchangeName, subscriber.QueueName);
                 }
             }
+
+            return Task.CompletedTask;
         }
 
-        private void SubsManager_OnEventRemoved(object sender, (string eventName, string exchangeName, string queueName) args)
+        public Task StopAsync(CancellationToken cancellationToken = default)
         {
-            if (!_persistentConnection.IsConnected)
-            {
-                _persistentConnection.TryConnect();
-            }
+            _logger.LogInformation("Disposing ConsumerChannel");
 
-            using (var channel = _persistentConnection.CreateChannel())
-            {
-                channel.QueueUnbind(queue: args.queueName,
-                    exchange: args.exchangeName,
-                    routingKey: args.eventName);
+            Dispose();
 
-                if (_subsManager.IsEmpty)
-                {
-                    _consumerChannel.Close();
-                }
-            }
+            return Task.CompletedTask;
         }
 
         public void Subscribe<T, TH>(string exchangeName = null, string queueName = null)
@@ -117,6 +127,26 @@ namespace Vad3x.Extensions.EventBus.RabbitMQ
             }
 
             _subsManager.Clear();
+        }
+
+        private void SubsManager_OnEventRemoved(object sender, (string eventName, string exchangeName, string queueName) args)
+        {
+            if (!_persistentConnection.IsConnected)
+            {
+                _persistentConnection.TryConnect();
+            }
+
+            using (var channel = _persistentConnection.CreateChannel())
+            {
+                channel.QueueUnbind(queue: args.queueName,
+                    exchange: args.exchangeName,
+                    routingKey: args.eventName);
+
+                if (_subsManager.IsEmpty)
+                {
+                    _consumerChannel.Close();
+                }
+            }
         }
 
         private void DeclareConsumer(IModel channel, string queueName)

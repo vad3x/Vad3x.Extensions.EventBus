@@ -107,8 +107,14 @@ namespace Vad3x.Extensions.EventBus.RabbitMQ
 
                 policy.Execute(() =>
                 {
-                    _connection = _connectionFactory
-                          .CreateConnection(ClientProvidedName);
+                    if (!_disposed)
+                    {
+                        _connection = _connectionFactory.CreateConnection(ClientProvidedName);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("PersistentConnection is disposed, dropping creating RabbitMQ connection.");
+                    }
                 });
 
                 if (IsConnected)
