@@ -11,6 +11,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{AB2D8661-29E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vad3x.Extensions.EventBus.Hosting", "src\Vad3x.Extensions.EventBus.Hosting\Vad3x.Extensions.EventBus.Hosting.csproj", "{038A420E-678B-434A-876A-7A885D761EBA}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{03CBF694-F117-460A-9001-BC07525F94AE}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		appveyor.yml = appveyor.yml
+		dir.props = dir.props
+		nuget.config = nuget.config
+		version.props = version.props
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

@@ -22,14 +22,14 @@ namespace Vad3x.Extensions.EventBus.Hosting
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation($"'{nameof(EventBusHostedService)}' started");
+            _logger.LogInformation($"'{nameof(EventBusHostedService)}' starts...");
 
             return _eventSubscriber.StartAsync(cancellationToken);
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation($"'{nameof(EventBusHostedService)}' stopped");
+            _logger.LogInformation($"'{nameof(EventBusHostedService)}' stops...");
 
             return _eventSubscriber.StopAsync(cancellationToken);
         }

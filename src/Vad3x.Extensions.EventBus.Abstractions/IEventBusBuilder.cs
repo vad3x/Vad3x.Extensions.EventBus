@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Vad3x.Extensions.EventBus.RabbitMQ
+namespace Vad3x.Extensions.EventBus.Abstractions
 {
     public interface IEventBusBuilder
     {

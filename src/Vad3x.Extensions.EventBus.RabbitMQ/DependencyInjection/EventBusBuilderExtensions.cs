@@ -1,6 +1,6 @@
-using Vad3x.Extensions.EventBus.Abstractions;
-using Vad3x.Extensions.EventBus.RabbitMQ;
 using System;
+
+using Vad3x.Extensions.EventBus.Abstractions;
 
 namespace Microsoft.Extensions.DependencyInjection
 {

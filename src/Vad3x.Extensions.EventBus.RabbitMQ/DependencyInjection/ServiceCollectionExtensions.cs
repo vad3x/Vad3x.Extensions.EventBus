@@ -1,11 +1,14 @@
 using System;
-using Vad3x.Extensions.EventBus.Abstractions;
-using Vad3x.Extensions.EventBus.RabbitMQ;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using RabbitMQ.Client;
 using System.Collections.Generic;
 using System.Linq;
+
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+
+using RabbitMQ.Client;
+
+using Vad3x.Extensions.EventBus.Abstractions;
+using Vad3x.Extensions.EventBus.RabbitMQ;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -29,8 +32,13 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddSingleton<IRabbitMQPersistentConnection>(sp =>
             {
-                var logger = sp.GetRequiredService<ILogger<DefaultRabbitMQPersistentConnection>>();
                 var options = sp.GetRequiredService<IOptions<RabbitMQOptions>>().Value;
+                if (string.IsNullOrWhiteSpace(options.HostName))
+                {
+                    throw new ArgumentException($"HostName: '{options.HostName}' is not valid");
+                }
+
+                var logger = sp.GetRequiredService<ILogger<DefaultRabbitMQPersistentConnection>>();
 
                 var subscribers = sp.GetRequiredService<IEnumerable<SubscriberInfo>>();
 
